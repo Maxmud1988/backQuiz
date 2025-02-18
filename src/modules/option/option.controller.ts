@@ -22,7 +22,6 @@ export class OptionController {
 
   /**
    * Создать новый вариант ответа для вопроса
-   * @param questionId ID вопроса
    */
   @Post(':questionId')
   createOption(
@@ -30,7 +29,7 @@ export class OptionController {
     @Body() dto: CreateOptionDto,
     @Request() req,
   ) {
-    const currentUserId = req.user.sub; // либо req.user.id
+    const currentUserId = req.user.sub;
     const currentUserRole: Role = req.user.role;
     return this.optionService.createOption(
       questionId,

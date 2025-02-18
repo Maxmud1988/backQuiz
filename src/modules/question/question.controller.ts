@@ -1,3 +1,4 @@
+// src/question/question.controller.ts
 import {
   Controller,
   Post,
@@ -8,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
-
 import { AtGuard } from '../auth/guards';
 
 @Controller('question')
@@ -26,6 +26,4 @@ export class QuestionController {
     const userRole = req.user.role;
     return this.questionService.createQuestion(dto, quizId, userId, userRole);
   }
-
-  // ...Другие CRUD методы
 }

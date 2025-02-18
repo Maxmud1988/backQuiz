@@ -37,7 +37,7 @@ export class AuthService {
       user.role,
       user.username,
     );
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -46,6 +46,11 @@ export class AuthService {
     const user = await this.userService.findByEmail(dto.email);
     if (!user || !user.hash) {
       throw new ForbiddenException('Неверные учетные данные');
+    }
+
+    // Добавляем проверку: если пользователь заблокирован, выдаем ошибку
+    if (user.isBlocked) {
+      throw new ForbiddenException('Пользователь заблокирован');
     }
 
     const passwordMatches = await bcrypt.compare(dto.password, user.hash);
@@ -59,7 +64,7 @@ export class AuthService {
       user.role,
       user.username,
     );
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -83,7 +88,7 @@ export class AuthService {
       user.role,
       user.username,
     );
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -115,7 +120,7 @@ export class AuthService {
       user.username,
     );
     console.log(tokens);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -146,8 +151,8 @@ export class AuthService {
     ]);
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      accessToken,
+      refreshToken,
     };
   }
   // Обновление хеша refresh token

@@ -288,6 +288,29 @@
         ]
       }
     },
+    "/users/{id}/block": {
+      "patch": {
+        "operationId": "UserController_updateUserStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
     "/users/set-password": {
       "patch": {
         "operationId": "UserController_setPassword",
@@ -796,6 +819,39 @@
         },
         "tags": [
           "UserQuestionAnswer"
+        ]
+      }
+    },
+    "/admin/dashboard": {
+      "get": {
+        "operationId": "DashboardController_getDashboardData",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Начальная дата в формате ISO (например, 2023-01-01)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "Конечная дата в формате ISO (например, 2023-01-31)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Агрегированные данные для административной панели с фильтрацией по датам"
+          }
+        },
+        "tags": [
+          "dashboard"
         ]
       }
     }

@@ -14,6 +14,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Question } from 'src/modules/question/entities/question.entity';
 
+// Расширенный enum для гибридной модели модерации
+export enum ModerationStatus {
+  PENDING = 'pending', // Только создан, автоматическая проверка ещё не выполнена
+  AUTO_APPROVED = 'auto_approved', // Прошел автоматическую проверку
+  PENDING_MANUAL_REVIEW = 'pending_manual_review', // Обнаружены подозрительные элементы – требуется ручная проверка
+  APPROVED = 'approved', // Окончательно одобрен модератором
+  REJECTED = 'rejected', // Отклонён
+}
+
 @Table({ tableName: 'quizzes' })
 export class Quiz extends Model<Quiz> {
   @ApiProperty({ example: '2b24e1c4-281c-4b8a-9c6a-57ae965f22a5' })
@@ -44,14 +53,13 @@ export class Quiz extends Model<Quiz> {
     type: DataType.BOOLEAN,
     allowNull: false,
   })
-  isPublic: boolean; // можно скрывать/открывать квиз для других
+  isPublic: boolean;
 
   @ApiProperty({ example: '2cf458ee-6a8f-4fc2-9f06-7af7ca2a5f22' })
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, allowNull: false })
   authorId: string;
 
-  // ТАЙМЕР (сколько секунд даётся на прохождение теста)
   @ApiProperty({
     example: 600,
     description: 'Time limit in seconds (e.g. 600 = 10 min)',
@@ -63,7 +71,6 @@ export class Quiz extends Model<Quiz> {
   })
   timeLimit: number | null;
 
-  // РАНДОМИЗАЦИЯ
   @ApiProperty({ example: true, description: 'Randomize question order' })
   @Default(false)
   @Column({
@@ -80,7 +87,6 @@ export class Quiz extends Model<Quiz> {
   })
   shuffleOptions: boolean;
 
-  // ПОКАЗЫВАТЬ ЛИ ПРАВИЛЬНЫЕ ОТВЕТЫ ПОСЛЕ ТЕСТА
   @ApiProperty({ example: true })
   @Default(false)
   @Column({
@@ -89,7 +95,6 @@ export class Quiz extends Model<Quiz> {
   })
   showCorrectAnswers: boolean;
 
-  // ОГРАНИЧЕНИЕ ПО ЧИСЛУ ПОПЫТОК
   @ApiProperty({
     example: 3,
     description: 'Allowed attempts; null => unlimited',
@@ -100,6 +105,53 @@ export class Quiz extends Model<Quiz> {
     comment: 'Если не null => кол-во попыток',
   })
   attemptsAllowed: number | null;
+
+  // Поле для гибридной модерации:
+  @ApiProperty({
+    description: 'Статус модерации квиза (гибридная модель)',
+    example: ModerationStatus.PENDING,
+  })
+  @Default(ModerationStatus.PENDING)
+  @Column({
+    type: DataType.ENUM(...Object.values(ModerationStatus)),
+    allowNull: false,
+  })
+  moderationStatus: ModerationStatus;
+
+  // Дата одобрения квиза (если применимо)
+  @ApiProperty({
+    description: 'Дата одобрения квиза',
+    example: '2023-02-14T12:34:56.789Z',
+  })
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  approvedAt?: Date;
+
+  // Флаг архивированности квиза (для скрытия без удаления)
+  @ApiProperty({
+    description: 'Флаг архивированности квиза',
+    example: false,
+  })
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+  })
+  isArchived: boolean;
+
+  // Дополнительные метрики (например, просмотры)
+  @ApiProperty({
+    description: 'Количество просмотров квиза',
+    example: 100,
+  })
+  @Default(0)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  views: number;
 
   @BelongsTo(() => User, 'authorId')
   author: User;

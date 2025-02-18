@@ -43,7 +43,7 @@ export class User extends Model<User> {
   username?: string;
 
   @ApiProperty({
-    description: 'Пароль пользователя',
+    description: 'Пароль пользователя (хранится в зашифрованном виде)',
     example: 'hashed_password',
   })
   @ApiHideProperty()
@@ -54,15 +54,60 @@ export class User extends Model<User> {
   hash: string;
 
   @ApiProperty({
-    description: 'refresh_token пользователя',
+    description: 'Refresh token пользователя',
     example: 'hashed_refresh_token',
   })
-  // @ApiHideProperty()
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
   hashRt: string;
+
+  // Новые поля для админ-панели:
+
+  @ApiProperty({
+    description: 'Флаг блокировки пользователя',
+    example: false,
+  })
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  isBlocked: boolean;
+
+  @ApiProperty({
+    description: 'Дата и время последнего входа пользователя',
+    example: '2023-02-14T12:34:56.789Z',
+  })
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  lastLogin?: Date;
+
+  // Timestamps (если не добавляются автоматически)
+  @ApiProperty({
+    description: 'Дата создания пользователя',
+    example: '2023-01-01T00:00:00.000Z',
+  })
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: 'Дата последнего обновления данных пользователя',
+    example: '2023-01-15T12:00:00.000Z',
+  })
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  updatedAt: Date;
 
   // Связь один-ко-многим (один User -> много Quiz)
   @HasMany(() => Quiz)

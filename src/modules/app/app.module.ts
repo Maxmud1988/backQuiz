@@ -18,6 +18,7 @@ import { QuestionModule } from '../question/question.module';
 import { OptionModule } from '../option/option.module';
 import { UserQuizResultModule } from '../user-quiz-result/user-quiz-result.module';
 import { UserQuestionAnswerModule } from '../user-question-answer/user-question-answer.module';
+import { DashboardModule } from '../dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { UserQuestionAnswerModule } from '../user-question-answer/user-question-
     OptionModule,
     UserQuizResultModule,
     UserQuestionAnswerModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

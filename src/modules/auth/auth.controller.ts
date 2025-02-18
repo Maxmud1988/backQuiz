@@ -46,7 +46,7 @@ export class AuthController {
     const tokens = await this.authService.signup(dto);
 
     // 3. Записать refreshToken в cookie (httpOnly)
-    res.cookie('refreshToken', tokens.refresh_token, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
@@ -54,7 +54,7 @@ export class AuthController {
     });
 
     // 4. Возвращаем клиенту access_token
-    return { access_token: tokens.access_token };
+    return { accessToken: tokens.accessToken };
   }
 
   // Вход
@@ -65,13 +65,13 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.authService.signin(dto);
-    res.cookie('refreshToken', tokens.refresh_token, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: false, // Поменяйте на true в продакшене с HTTPS
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { access_token: tokens.access_token };
+    return { accessToken: tokens.accessToken };
   }
 
   // Выход
@@ -99,13 +99,13 @@ export class AuthController {
       user['sub'],
       user['refreshToken'],
     );
-    res.cookie('refreshToken', tokens.refresh_token, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: false, // Поменяйте на true в продакшене с HTTPS
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { access_token: tokens.access_token };
+    return { accessToken: tokens.accessToken };
   }
 
   // OAuth 2.0 Google
@@ -126,7 +126,7 @@ export class AuthController {
       req.user.givenName,
       'google',
     );
-    res.cookie('refreshToken', tokens.refresh_token, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: false, // Поменяйте на true в продакшене с HTTPS
       sameSite: 'lax',
@@ -134,7 +134,7 @@ export class AuthController {
     });
     // Перенаправляем на фронтенд с access_token в query параметре
     return res.redirect(
-      `http://localhost:5173/oauth2/redirect?access_token=${tokens.access_token}`,
+      `http://localhost:5173/oauth2/redirect?access_token=${tokens.accessToken}`,
     );
   }
 }

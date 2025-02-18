@@ -27,13 +27,13 @@ export class UserService {
   constructor(@InjectModel(User) private userModel: typeof User) {}
 
   async create(data: CreateUserDto): Promise<User> {
-    // 1. Проверка, нет ли пользователя с таким email
+    // Проверка, нет ли пользователя с таким email
     const existingUser = await this.findByEmail(data.email);
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
-    // 2. Хеширование пароля, если он передан
+    // Хеширование пароля, если он передан
     let hashedPassword = null;
     if (data.hash) {
       if (typeof data.hash !== 'string') {
@@ -42,20 +42,20 @@ export class UserService {
       hashedPassword = await bcrypt.hash(data.hash, 10);
     }
 
-    // 3. Установка роли по умолчанию, если она не указана
+    // Установка роли по умолчанию, если не указана
     if (!data.role) {
       data.role = Role.USER;
     }
 
-    // 4. Создаём пользователя
+    // Создаём пользователя
     const newUser = await this.userModel.create({
       ...data,
       hash: hashedPassword,
     });
 
-    // 5. Возврат "очищенных" данных
-    const { id, email, username, role } = newUser;
-    return { id, email, username, role } as User;
+    // Возвращаем "очищенные" данные
+    const { id, email, username, role, isBlocked, lastLogin } = newUser;
+    return { id, email, username, role, isBlocked, lastLogin } as User;
   }
 
   async findByEmail(email: string): Promise<User> {
@@ -63,7 +63,6 @@ export class UserService {
     if (!user) {
       return null;
     }
-
     return user;
   }
 
@@ -79,39 +78,31 @@ export class UserService {
     userId: string,
     updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    // Проверяем, существует ли пользователь с таким email (если email передан)
+    // Если email передан, проверяем его уникальность
     if (updateUserDto.email) {
       const existingUser = await this.userModel.findOne({
         where: { email: updateUserDto.email },
       });
-
-      // Если найден пользователь с таким email и это не текущий пользователь, выбрасываем ошибку
       if (existingUser && existingUser.id !== userId) {
         throw new ConflictException('Email is already in use');
       }
     }
-
-    // Обновляем профиль
     await this.userModel.update(updateUserDto, { where: { id: userId } });
     return this.findById(userId);
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.findById(userId);
-
     if (!user.hash) {
       throw new BadRequestException('У вас не установлен пароль');
     }
-
     const passwordMatches = await bcrypt.compare(
       dto.currentPassword,
       user.hash,
     );
-
     if (!passwordMatches) {
       throw new ForbiddenException('Текущий пароль указан неверно');
     }
-
     const newHash = await bcrypt.hash(dto.newPassword, 10);
     await this.userModel.update({ hash: newHash }, { where: { id: userId } });
   }
@@ -121,13 +112,19 @@ export class UserService {
     return this.findById(userId);
   }
 
+  // Новый метод для обновления статуса блокировки пользователя
+  async updateUserStatus(userId: string, isBlocked: boolean): Promise<User> {
+    await this.userModel.update({ isBlocked }, { where: { id: userId } });
+    return this.findById(userId);
+  }
+
   async findAll(page: number, limit: number, searchQuery?: string) {
     const offset = (page - 1) * limit;
     const whereCondition = searchQuery
       ? {
           [Op.or]: [
-            { username: { [Op.iLike]: `%${searchQuery}%` } }, // поиск по имени
-            { email: { [Op.iLike]: `%${searchQuery}%` } }, // поиск по email
+            { username: { [Op.iLike]: `%${searchQuery}%` } },
+            { email: { [Op.iLike]: `%${searchQuery}%` } },
           ],
         }
       : {};
@@ -147,14 +144,10 @@ export class UserService {
     if (dto.newPassword !== dto.confirmPassword) {
       throw new BadRequestException('Пароли не совпадают');
     }
-
     const user = await this.findById(userId);
-
-    // Проверяем, есть ли у пользователя уже установлен пароль
     if (user.hash) {
       throw new BadRequestException('Пароль уже установлен');
     }
-
     const newHash = await bcrypt.hash(dto.newPassword, 10);
     await this.userModel.update({ hash: newHash }, { where: { id: userId } });
   }
